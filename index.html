@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluxos de Trabalho</title>
+<style>
+  body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f5f6f8;color:#222}
+  header{background:#1f2a44;color:#fff;padding:14px 20px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+  header h1{font-size:20px;margin:0}
+  header a{color:#9fc3ff;text-decoration:none;font-size:14px}
+  main{max-width:1100px;margin:0 auto;padding:20px}
+  section{background:#fff;border:1px solid #e2e2e2;border-radius:10px;padding:16px;margin-bottom:20px}
+  section h2{margin:0 0 12px;font-size:18px}
+  .mxgraph{max-width:100%}
+  .links a{font-size:13px;color:#1f6feb;text-decoration:none;margin-right:12px}
+  .aviso{background:#fff8e6;border:1px solid #f0d98c;border-radius:8px;padding:10px 14px;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Fluxos de Trabalho</h1>
+  <a href="editor.html">✏️ Abrir editor</a>
+</header>
+<main>
+  <div id="lista" class="aviso">Carregando fluxos…</div>
+</main>
+<script src="fluxos.js"></script>
+<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+<script>
+(function(){
+  const lista = document.getElementById("lista");
+  if (!FLUXOS.length) {
+    lista.textContent = "Nenhum fluxo publicado ainda. Use o editor para criar o primeiro.";
+    return;
+  }
+  lista.className = "";
+  let html = "";
+  FLUXOS.forEach(function(f){
+    const cfg = JSON.stringify({highlight:"#1f6feb", nav:true, resize:true, toolbar:"zoom", page:0, xml:f.xml});
+    html += "<section><h2>" + f.titulo + "</h2>" +
+      "<div class=\"mxgraph\" data-mxgraph='" + cfg + "'></div>" +
+      "<p class=\"links\"><a href=\"editor.html?fluxo=" + encodeURIComponent(f.id) + "\">✏️ Editar ou exportar PNG</a></p></section>";
+  });
+  lista.innerHTML = html;
+  if (window.GraphViewer) { GraphViewer.processElements(); }
+  else { window.addEventListener("load", function(){ GraphViewer.processElements(); }); }
+})();
+</script>
+</body>
+</html>

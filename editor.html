@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor de Fluxos</title>
+<style>
+  body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f5f6f8;color:#222}
+  header{background:#1f2a44;color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:16px;margin:0}
+  header a{color:#9fc3ff;text-decoration:none;font-size:13px}
+  button{padding:6px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;font-size:13px}
+  button.primary{background:#1f6feb;color:#fff;border-color:#1f6feb}
+  #barra{padding:8px 16px;background:#fff;border-bottom:1px solid #e2e2e2;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  #frame{width:100%;height:calc(100vh - 150px);border:0;background:#fff;display:block}
+  #salvo{display:none;padding:12px 16px;background:#eaf6ff;border-bottom:1px solid #b7dcff}
+  #salvo button{margin:0 6px 0 0}
+  button:disabled{opacity:.6;cursor:wait}
+  .aviso{font-size:12px;color:#555}
+</style>
+</head>
+<body>
+<header>
+  <h1>Editor de Fluxos de Trabalho</h1>
+  <a href="index.html">← Fluxos publicados</a>
+</header>
+<div id="barra">
+  <button id="bNovo">Novo fluxo</button>
+  <button id="bAbrir">Abrir arquivo .drawio</button>
+  <button id="bPng" disabled>Exportar PNG</button>
+  <span id="status" class="aviso">Carregando editor…</span>
+</div>
+<div id="salvo">
+  <strong>Rascunho pronto!</strong> Envie de um destes jeitos:
+  <button class="primary" id="bBaixar">Baixar arquivo .drawio</button>
+  <button id="bCopiar">Copiar conteúdo para enviar ao Kaiki</button>
+</div>
+<input type="file" id="arquivo" accept=".drawio,application/xml,text/xml" style="display:none">
+<iframe id="frame" src="https://embed.diagrams.net/?embed=1&amp;ui=min&amp;proto=json&amp;spin=1"></iframe>
+<script src="fluxos.js"></script>
+<script>
+const STARTER = '<mxfile host="app.diagrams.net"><diagram id="novo" name="Página-1"><mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="600" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel></diagram></mxfile>';
+let xmlAtual = STARTER;
+const frame = document.getElementById("frame");
+const botaoPng = document.getElementById("bPng");
+let exportandoPng = false;
+let temporizadorExportacao;
+function send(o){ frame.contentWindow.postMessage(JSON.stringify(o), "https://embed.diagrams.net"); }
+function nomeAtual(){
+  const id = new URLSearchParams(location.search).get("fluxo");
+  if (id) {
+    const f = FLUXOS.find(function(x){ return x.id === id; });
+    if (f) { return f.titulo.replace(/[^\w\sÀ-ÿ-]/g, "").trim().replace(/\s+/g, "-").toLowerCase(); }
+  }
+  return "fluxo-novo";
+}
+window.addEventListener("message", function(e){
+  if (e.origin !== "https://embed.diagrams.net" || e.source !== frame.contentWindow) { return; }
+  let msg; try { msg = JSON.parse(e.data); } catch(_) { return; }
+  if (msg.event === "init") { carregar(); }
+  else if (msg.event === "load") {
+    document.getElementById("status").textContent = "Editor pronto. O rascunho aparece alguns segundos após cada alteração.";
+    botaoPng.disabled = false;
+  }
+  else if ((msg.event === "save" || msg.event === "autosave") && msg.xml) { xmlAtual = msg.xml; mostrarPainel(); }
+  else if (msg.event === "export") concluirExportacaoPng(msg);
+});
+function carregar(){
+  document.getElementById("status").textContent = "Carregando fluxo…";
+  const id = new URLSearchParams(location.search).get("fluxo");
+  const f = id ? FLUXOS.find(function(x){ return x.id === id; }) : null;
+  if (f) { xmlAtual = f.xml; }
+  send({action:"load", autosave:1, xml: xmlAtual});
+}
+function mostrarPainel(){ document.getElementById("salvo").style.display = "block"; }
+function concluirExportacaoPng(msg){
+  if (!exportandoPng) { return; }
+  clearTimeout(temporizadorExportacao);
+  exportandoPng = false;
+  botaoPng.disabled = false;
+  if (msg.error) {
+    document.getElementById("status").textContent = "Não foi possível gerar o PNG: " + msg.error;
+    return;
+  }
+  if (typeof msg.data !== "string" || !msg.data.startsWith("data:image/png")) {
+    document.getElementById("status").textContent = "O editor não retornou uma imagem PNG válida.";
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = msg.data;
+  a.download = nomeAtual() + ".png";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  document.getElementById("status").textContent = "PNG baixado.";
+}
+botaoPng.onclick = function(){
+  if (exportandoPng || botaoPng.disabled) { return; }
+  exportandoPng = true;
+  botaoPng.disabled = true;
+  document.getElementById("status").textContent = "Gerando PNG…";
+  temporizadorExportacao = setTimeout(function(){
+    if (!exportandoPng) { return; }
+    exportandoPng = false;
+    botaoPng.disabled = false;
+    document.getElementById("status").textContent = "A exportação demorou demais. Tente novamente.";
+  }, 30000);
+  send({action:"export", format:"png", spinKey:"png-export"});
+};
+document.getElementById("bNovo").onclick = function(){
+  xmlAtual = STARTER;
+  document.getElementById("salvo").style.display = "none";
+  send({action:"load", autosave:1, xml: STARTER});
+};
+document.getElementById("bAbrir").onclick = function(){ document.getElementById("arquivo").click(); };
+document.getElementById("arquivo").onchange = function(e){
+  const f = e.target.files[0]; if (!f) { return; }
+  const r = new FileReader();
+  r.onload = function(){ xmlAtual = r.result; send({action:"load", autosave:1, xml: xmlAtual}); };
+  r.readAsText(f);
+};
+document.getElementById("bBaixar").onclick = function(){
+  const blob = new Blob([xmlAtual], {type:"application/xml"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nomeAtual() + ".drawio";
+  a.click();
+};
+document.getElementById("bCopiar").onclick = function(){
+  navigator.clipboard.writeText(xmlAtual);
+  this.textContent = "Copiado! Cole no chat do Kaiki";
+};
+</script>
+</body>
+</html>
