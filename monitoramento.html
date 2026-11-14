@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Referência estática de indicadores e processo de monitoramento Log-PI com consulta manual ao FleetBus.">
+<title>Monitoramento Log-PI</title>
+<style>
+  :root{font-family:system-ui,Arial,sans-serif;color:#202938;background:#f4f6f9}*{box-sizing:border-box}body{margin:0}
+  header{background:#1f2a44;color:#fff;padding:14px 20px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}header h1{font-size:20px;margin:0}
+  nav{display:flex;gap:14px;flex-wrap:wrap}nav a{color:#b9d1ff;text-decoration:none;font-size:14px}nav a[aria-current=page]{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:5px}
+  main{max-width:1180px;margin:auto;padding:20px}.intro,.section,.notice{background:#fff;border:1px solid #dfe4ec;border-radius:12px;padding:18px;margin-bottom:18px}
+  h2{font-size:20px;margin:0 0 12px}h3{font-size:16px;margin:0 0 8px}p{line-height:1.55}.muted{color:#5d6878;font-size:13px}.notice{background:#fff7e6;border-color:#f0d48a}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:12px}.card{border:1px solid #e0e5ed;border-radius:10px;padding:14px;background:#fff}
+  .tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:99px;padding:4px 8px;background:#fff1cc;color:#704b00}.tag.info{background:#e8f1ff;color:#174b8b}
+  .formula{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:#f3f5f8;border-radius:6px;padding:8px;overflow-wrap:anywhere}
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.color-card{border:1px solid #e0e5ed;border-radius:9px;padding:12px;background:#fff}.color-name{display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:6px}.dot{width:13px;height:13px;border-radius:50%;display:inline-block}
+  .flow{overflow-x:auto;border:1px solid #e0e5ed;border-radius:10px;background:#fbfcfe;padding:10px}.flow svg{display:block;width:100%;min-width:800px;height:auto}.flowbox{fill:#fff;stroke:#718096;stroke-width:2}.flowtext{font:15px system-ui,Arial,sans-serif;fill:#202938}.flowline{stroke:#65758b;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.flowcaption{font-size:12px;fill:#536174}
+  .processes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.process{border-left:4px solid #5274a8;padding:12px 14px;background:#f8faff;border-radius:6px}.process p{margin:6px 0;font-size:14px}
+  ul{padding-left:20px;line-height:1.55}footer{max-width:1180px;margin:auto;padding:0 20px 24px;color:#5d6878;font-size:12px}@media(max-width:600px){main{padding:12px}.intro,.section,.notice{padding:14px}header{padding:12px 14px}}
+</style>
+</head>
+<body>
+<header><h1>Monitoramento Log-PI</h1><nav aria-label="Navegação principal"><a href="index.html">Fluxos publicados</a><a href="monitoramento.html" aria-current="page">Monitoramento Log-PI</a><a href="editor.html">Editor de fluxos</a></nav></header>
+<main>
+  <section class="intro"><h2>Referência do processo e dos indicadores</h2><p>Esta aba documenta como observar, validar e encaminhar situações de monitoramento. É informativa: <strong>não consulta dados ao vivo, não registra ocorrências e não aciona equipes automaticamente.</strong></p><p class="muted">Fontes: análises do Log-PI/Escala_RT e piloto FleetBus, com data-base 14/11/2026. A consulta FleetBus é manual; confirme a data e o contexto de cada observação.</p></section>
+  <aside class="notice" role="note"><strong>Metas e limites ainda não aprovados.</strong> Percentuais, SLAs e limiares numéricos das análises são propostas ou critérios de triagem, não metas oficiais nem prova automática de irregularidade. Valide com a supervisão antes de uso operacional.</aside>
+  <section class="section"><h2>Indicadores descritivos</h2><div class="grid">
+    <article class="card"><span class="tag info">Fórmula de referência</span><h3>Conclusão de rotas no dia</h3><div class="formula">rotas concluídas ÷ rotas previstas × 100</div><p class="muted">Fonte: Escala ao Vivo/Log-PI. Registrar a data e o total usado.</p></article>
+    <article class="card"><span class="tag info">Fórmula de referência</span><h3>Assiduidade por GRE</h3><div class="formula">rotas concluídas na GRE ÷ rotas previstas na GRE × 100</div><p class="muted">Fonte: painel de Assiduidade. Resultado baixo exige checar execução, GPS e app antes de concluir desvio.</p></article>
+    <article class="card"><span class="tag info">Fórmula de referência</span><h3>Conclusão por fornecedor</h3><div class="formula">rotas concluídas do fornecedor ÷ rotas previstas do fornecedor × 100</div><p class="muted">Fonte: Frota/Fornecedores e escala. Consolidar por dia e conferir cobertura.</p></article>
+    <article class="card"><span class="tag">Proposta — validar</span><h3>Monitoramento ativo</h3><div class="formula">rotas com app aberto e GPS válido ÷ rotas monitoradas × 100</div><p class="muted">Validar a instrumentação de app/GPS antes de confiar no indicador.</p></article>
+    <article class="card"><span class="tag">Proposta — validar</span><h3>Tratativa de alertas</h3><div class="formula">tempo entre detecção, registro e acionamento</div><p class="muted">Guardar horários. A planilha atual não sustenta histórico confiável; falta definir armazenamento persistente.</p></article>
+    <article class="card"><span class="tag">Proposta — validar</span><h3>Qualidade do registro</h3><div class="formula">ocorrências completas ÷ ocorrências registradas × 100</div><p class="muted">Acompanhar evidência, fonte, data/hora, responsável e status; evitar dados pessoais desnecessários.</p></article>
+    <article class="card"><span class="tag info">Triagem manual</span><h3>Velocidade, paradas e horário</h3><div class="formula">resumo do trajeto + revisão dos pontos que excederem limite aprovado</div><p class="muted">Limite de velocidade e tolerância de parada aguardam decisão. Sem pontos autorizados não se classifica parada como “não autorizada”.</p></article>
+    <article class="card"><span class="tag info">Triagem manual</span><h3>Deslocamento sem rota justificada</h3><div class="formula">veículos laranja ÷ veículos com sinal (verde + azul + laranja) × 100</div><p class="muted">Contar veículos no mesmo instante, não rotas. Conferir Escala_RT, janela e sincronização antes de registrar divergência.</p></article>
+  </div></section>
+  <section class="section"><h2>Legenda FleetBus e interpretação segura</h2><div class="legend">
+    <article class="color-card"><div class="color-name"><span class="dot" style="background:#10b981"></span>Verde — em rota</div><p class="muted">Com sinal e em deslocamento com rota aberta. Não significa rota concluída.</p></article>
+    <article class="color-card"><div class="color-name"><span class="dot" style="background:#3b82f6"></span>Azul — disponível</div><p class="muted">Com sinal, sem deslocamento. Não mede indisponibilidade; a parada pode ser esperada.</p></article>
+    <article class="color-card"><div class="color-name"><span class="dot" style="background:#f97316"></span>Laranja — deslocamento</div><p class="muted">Em movimento sem rota aberta que justifique. É divergência a validar, não irregularidade comprovada.</p></article>
+    <article class="color-card"><div class="color-name"><span class="dot" style="background:#64748b"></span>Cinza — estado a esclarecer</div><p class="muted">Separar “offline há…” de “sem registros”. A cor não permite concluir a causa nem medir disponibilidade.</p></article>
+  </div><p class="muted">Guardar captura, URL e data/hora. O FleetBus não mantém histórico das cores; sem snapshots periódicos não há série temporal.</p></section>
+  <section class="section"><h2>Fluxo geral de triagem e escalação</h2><div class="flow" role="img" aria-label="Observar alerta, validar contexto e evidência, registrar, escalar e acompanhar até resolução.">
+    <svg viewBox="0 0 1100 210" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#65758b"/></marker></defs>
+      <rect class="flowbox" x="20" y="58" width="170" height="82" rx="12"/><text class="flowtext" x="105" y="91" text-anchor="middle"><tspan x="105">Observar alerta</tspan><tspan x="105" dy="21">Log-PI / FleetBus</tspan></text><path class="flowline" d="M190 99H235"/>
+      <rect class="flowbox" x="245" y="58" width="190" height="82" rx="12"/><text class="flowtext" x="340" y="88" text-anchor="middle"><tspan x="340">Validar contexto</tspan><tspan x="340" dy="21">rota, janela, GPS</tspan><tspan x="340" dy="18">e sincronização</tspan></text><path class="flowline" d="M435 99H480"/>
+      <rect class="flowbox" x="490" y="58" width="180" height="82" rx="12"/><text class="flowtext" x="580" y="88" text-anchor="middle"><tspan x="580">Registrar ocorrência</tspan><tspan x="580" dy="21">e evidência datada</tspan></text><path class="flowline" d="M670 99H715"/>
+      <rect class="flowbox" x="725" y="58" width="170" height="82" rx="12"/><text class="flowtext" x="810" y="88" text-anchor="middle"><tspan x="810">Escalar para</tspan><tspan x="810" dy="21">supervisão / logística</tspan></text><path class="flowline" d="M895 99H940"/>
+      <rect class="flowbox" x="950" y="58" width="130" height="82" rx="12"/><text class="flowtext" x="1015" y="88" text-anchor="middle"><tspan x="1015">Acompanhar</tspan><tspan x="1015" dy="21">e encerrar</tspan></text><text class="flowcaption" x="550" y="180" text-anchor="middle">Analista faz triagem e registro; supervisão valida e decide. Sem contato direto com motorista ou ação disciplinar automática.</text>
+    </svg></div><p class="muted">Registro: data/hora, rota, GRE/município, tipo/gravidade, evidência (link/print/GPS), providência, status, prazo e responsável. Usar só os dados pessoais indispensáveis.</p></section>
+  <section class="section"><h2>Fluxos operacionais de referência</h2><div class="processes">
+    <article class="process"><h3>F1 — Rotas não iniciadas</h3><p>Após fim da janela e tolerância sugerida de 15 min, conferir status, app/GPS e rota; registrar e encaminhar. Considerar a janela de cada rota.</p><p class="muted">Tolerância e prazos de 15 min para registro/30 min para acionamento são propostas.</p></article>
+    <article class="process"><h3>F2 — Assiduidade por GRE/fiscal</h3><p>Fechar resultado diário, validar execução versus falha de registro/GPS/app, documentar e encaminhar à supervisão.</p><p class="muted">Referência de 40% e escalação após 0% em dois dias são propostas.</p></article>
+    <article class="process"><h3>F3 — Fornecedores</h3><p>Consolidar rotas concluídas e previstas por fornecedor; registrar e encaminhar à logística/contratos.</p><p class="muted">Referências de 10% e 5% por três dias são propostas.</p></article>
+    <article class="process"><h3>F4 — Duração registrada como 0 min</h3><p>Sinalizador: comparar horários, GPS e trajeto antes de concluir inconsistência; documentar e validar com supervisão.</p></article>
+    <article class="process"><h3>F5 — Pontos a menos de 500 m</h3><p>Sinalizador de revisão: conferir rota e coordenadas. Distância sozinha não prova fraude.</p></article>
+    <article class="process"><h3>F6 — Rotina diária de atendimento</h3><p>Triar, classificar gravidade, registrar, encaminhar e acompanhar até “em tratativa” ou resolvido. Sem contato direto com motorista.</p></article>
+    <article class="process"><h3>F7 — Auditoria e relatórios</h3><p>Consolidar semanal e mensalmente por GRE, fiscal, fornecedor e município, declarando fonte, período e limites da amostra.</p></article>
+    <article class="process"><h3>F8 — Validação de dados frágeis</h3><p>Revisar cadastros incompletos, falhas de GPS/app, sincronização e cobertura antes de confiar no indicador ou fechar ocorrência.</p></article>
+  </div></section>
+  <section class="section"><h2>Limitações e pendências</h2><ul>
+    <li>Sem integração FleetBus, atualização automática ou armazenamento de ocorrências.</li><li>A planilha tem limite de células e falhas no histórico; não é fonte persistente adequada ao piloto.</li>
+    <li>Relatório Compilado e dados agregados em massa dependem de acesso ainda não confirmado.</li><li>Limites oficiais de velocidade/parada, autorização do piloto, local de registro, amostra de validação e responsável pelo vínculo placa–IMEI–rota aguardam decisão.</li>
+    <li>Para laranja: conferir rota da placa na Escala_RT; janela/status; possível deslocamento de apoio próximo à janela; só então registrar divergência para validação da logística.</li>
+  </ul></section>
+</main>
+<footer>Documento estático de referência. Estados, fórmulas e limiares dependem de validação antes de uso como meta ou decisão.</footer>
+</body>
+</html>
